@@ -10,7 +10,7 @@ import Confetti from "react-confetti";
 
 const UploaderView = () => (
   <div className="p-8">
-    <div className="flex flex-col justify-center items-start w-[50vw] h-[70vh] mx-auto my-auto bg-white rounded-xl shadow-lg border">
+    <div className="flex flex-col justify-center items-center w-[50vw] h-[70vh] mx-auto my-auto bg-white rounded-xl shadow-lg border">
       <h2 className="text-3xl font-bold pl-3 text-gray-700">Upload Resume</h2>
       <p className="text-gray-600 pl-3 mb-4">
         Please upload your resume to start the interview.
