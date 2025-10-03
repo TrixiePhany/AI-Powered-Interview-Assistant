@@ -18,7 +18,7 @@ export default function CandidateDetailModal({ candidate, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl w-[800px] max-h-[80vh] overflow-hidden shadow-xl">
+      <div className="bg-zinc-200 border border-gray-700 rounded-xl w-[800px] max-h-[80vh] overflow-hidden shadow-xl">
         {/* Header */}
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
           <h2 className="text-lg font-semibold">Candidate Details</h2>

@@ -63,7 +63,7 @@ export default function Uploader() {
   return (
     <>
       <div
-        className={`flex flex-col items-center justify-center bg-gray-800 rounded-xl shadow-lg w-[40vw] h-[35vh] max-w-2xl mx-auto my-12 transition-colors duration-200
+        className={`flex flex-col items-center justify-center bg-white rounded-xl shadow-lg w-[40vw] h-[35vh] max-w-2xl mx-auto my-12 transition-colors duration-200
           ${isDragging ? "border-2 border-dashed border-indigo-500" : "border border-gray-700"}
         `}
         onDragOver={handleDragOver}

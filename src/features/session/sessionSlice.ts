@@ -19,10 +19,12 @@ export type QA = {
 };
 
 export type Identity = {
-  name: string;
+ name: string;
   email: string;
   phone: string;
+  gender?: string; 
   internship?: string;
+  address?: string;
 };
 
 export type Session = {

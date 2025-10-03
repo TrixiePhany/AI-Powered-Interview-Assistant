@@ -6,18 +6,17 @@ import { useQuestionTimer } from "../../features/session/useQuestionTimer";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import TypingDots from "../components/TypingDots";
-
+import Confetti from "react-confetti";
 
 const UploaderView = () => (
-  <div className="p-10"> 
-  <div className=" items-center border border-6px w-[60vw] h-[60vh] mx-auto my-auto bg-gray-900 rounded-xl shadow-lg">
-    <h2 className="text-3xl font-bold text-gray-100">Upload Resume</h2>
-    <p className="text-gray-400  text-left">
-      Please upload your resume to start the interview.
+  <div className="p-8">
+    <div className="flex flex-col justify-center items-start w-[50vw] h-[70vh] mx-auto my-auto bg-white rounded-xl shadow-lg border">
+      <h2 className="text-3xl font-bold pl-3 text-gray-700">Upload Resume</h2>
+      <p className="text-gray-600 pl-3 mb-4">
+        Please upload your resume to start the interview.
+      </p>
       <Uploader />
-    </p>
-    
-  </div>
+    </div>
   </div>
 );
 
@@ -44,19 +43,31 @@ export default function Interviewee() {
   const [userAnswer, setUserAnswer] = useState("");
   const chatRef = useRef<HTMLDivElement>(null);
   const [typing, setTyping] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
+  // Auto-scroll
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [session.currentIndex, session.qas.map((q) => q.answer).join(), typing]);
 
+  // Typing simulation
   useEffect(() => {
     if (session.step !== "interview") return;
     setTyping(true);
     const t = setTimeout(() => setTyping(false), 1000);
     return () => clearTimeout(t);
   }, [session.currentIndex]);
+
+  // Confetti trigger
+  useEffect(() => {
+    if (session.step === "completed") {
+      setShowConfetti(true);
+      const timer = setTimeout(() => setShowConfetti(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [session.step]);
 
   if (session.step === "collecting") {
     return <UploaderView />;
@@ -69,57 +80,57 @@ export default function Interviewee() {
     const isLastQuestion = session.currentIndex === session.qas.length - 1;
 
     return (
-      <div className="flex flex-col h-[90vh] max-w-4xl mx-auto my-8 border border-gray-700 rounded-2xl shadow-2xl bg-gray-900 overflow-hidden">
+      <div className="flex flex-col h-[90vh] max-w-4xl mx-auto my-8 border border-gray-300 rounded-xl shadow-lg bg-white overflow-hidden">
         {/* Top bar */}
-        <div className="p-6 border-b border-gray-700 bg-gray-950">
-          <div className="flex justify-between items-center mb-3 text-sm text-gray-400">
-            <span className="font-medium">Interview Progress</span>
+        <div className="p-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
+            <span>Interview Progress</span>
             <span>
               Question {session.currentIndex + 1} of {session.qas.length}
             </span>
           </div>
-          <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className="h-2 bg-indigo-500 transition-all duration-500 ease-in-out"
+              className="h-2 bg-indigo-500 transition-all duration-500"
               style={{ width: `${progress}%` }}
-            ></div>
+            />
           </div>
-          <div className="flex justify-between items-center mt-4">
+          <div className="flex justify-between items-center mt-3">
             <span
-              className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
+              className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
                 currentQA.difficulty === "easy"
-                  ? "bg-green-500/20 text-green-400"
+                  ? "bg-green-100 text-green-700"
                   : currentQA.difficulty === "medium"
-                  ? "bg-yellow-500/20 text-yellow-400"
-                  : "bg-red-500/20 text-red-400"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : "bg-red-100 text-red-700"
               }`}
             >
               {currentQA.difficulty}
             </span>
-            <span className="font-mono text-xl text-gray-100">
-              ⏱ {Math.floor(remaining / 60)}:
+            <span className="font-mono text-lg text-gray-700">
+              {Math.floor(remaining / 60)}:
               {(remaining % 60).toString().padStart(2, "0")}
             </span>
           </div>
         </div>
 
         {/* Chat history */}
-        <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+        <div ref={chatRef} className="flex-1 overflow-y-auto p-6 space-y-8 bg-gray-50">
           {session.qas.slice(0, session.currentIndex + 1).map((qa, idx) => (
             <div key={qa.id}>
-              {/* AI Question */}
+              {/* BOT */}
               <motion.div
                 variants={chatMessageVariants}
                 initial="hidden"
                 animate="visible"
                 className="flex items-start gap-3"
               >
-                <div className="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center text-xl text-gray-300 flex-shrink-0">
-                  🤖
+                <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                  BOT
                 </div>
-                <div className="bg-gray-800 p-4 rounded-xl rounded-tl-none max-w-lg shadow-sm">
-                  <p className="text-gray-200 leading-relaxed">{qa.question}</p>
-                  <span className="text-xs text-gray-500 mt-2 block">
+                <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm max-w-lg">
+                  <p className="text-gray-800">{qa.question}</p>
+                  <span className="text-xs text-gray-400 mt-2 block">
                     {new Date().toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
@@ -128,7 +139,7 @@ export default function Interviewee() {
                 </div>
               </motion.div>
 
-              {/* Candidate Answer */}
+              {/* YOU */}
               {qa.answer && (
                 <motion.div
                   variants={userMessageVariants}
@@ -136,8 +147,8 @@ export default function Interviewee() {
                   animate="visible"
                   className="flex items-start gap-3 justify-end mt-4"
                 >
-                  <div className="bg-indigo-600 text-white p-4 rounded-xl rounded-tr-none max-w-lg shadow-sm">
-                    <p className="leading-relaxed">{qa.answer}</p>
+                  <div className="bg-indigo-600 text-white p-4 rounded-xl shadow-sm max-w-lg">
+                    <p>{qa.answer}</p>
                     <span className="text-xs text-indigo-200 mt-2 block">
                       {new Date().toLocaleTimeString([], {
                         hour: "2-digit",
@@ -145,17 +156,17 @@ export default function Interviewee() {
                       })}
                     </span>
                   </div>
-                  <div className="w-9 h-9 rounded-full bg-indigo-700 flex items-center justify-center text-xl flex-shrink-0">
-                    🙋
+                  <div className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                    YOU
                   </div>
                 </motion.div>
               )}
 
-              {/* Input box for current Q */}
+              {/* Answer input */}
               {idx === session.currentIndex && !qa.answer && !typing && (
-                <div className="mt-4 p-4 bg-gray-800 rounded-lg shadow-inner">
+                <div className="mt-4 p-4 bg-white border rounded-lg shadow-inner">
                   <textarea
-                    className="w-full p-3 rounded-lg bg-gray-900 text-gray-200 border-2 border-gray-700 focus:border-indigo-500 focus:outline-none resize-none transition-colors"
+                    className="w-full p-3 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none resize-none"
                     placeholder="Type your answer here..."
                     rows={3}
                     value={userAnswer}
@@ -163,7 +174,7 @@ export default function Interviewee() {
                   />
                   <div className="flex justify-end mt-3">
                     <button
-                      className="px-6 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition-transform duration-200 hover:scale-105"
+                      className="px-6 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition"
                       onClick={() => {
                         dispatch(answerCurrent({ answer: userAnswer }));
                         setUserAnswer("");
@@ -176,10 +187,11 @@ export default function Interviewee() {
                 </div>
               )}
 
+              {/* Typing indicator */}
               {idx === session.currentIndex && !qa.answer && typing && (
                 <div className="flex items-center gap-3 mt-4">
-                  <div className="w-9 h-9 rounded-full bg-gray-700 flex items-center justify-center text-xl text-gray-300 flex-shrink-0">
-                    🤖
+                  <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+                    BOT
                   </div>
                   <TypingDots />
                 </div>
@@ -197,13 +209,13 @@ export default function Interviewee() {
         variants={completedVariants}
         initial="hidden"
         animate="visible"
-        className="flex flex-col items-center justify-center h-[60vh] text-gray-100 bg-gray-900 rounded-xl shadow-2xl p-8 max-w-md mx-auto my-auto"
+        className="relative flex flex-col items-center justify-center h-[80vh] bg-white rounded-xl shadow-2xl p-8 max-w-lg mx-auto my-auto"
       >
-        <div className="text-6xl mb-6 animate-pulse">🎉</div>
-        <p className="text-2xl font-bold mb-2 text-center">Interview Complete!</p>
-        <p className="text-gray-400 text-center">
-          Thank you for completing the interview. Your results are being
-          processed.
+        {showConfetti && <Confetti width={window.innerWidth} height={window.innerHeight} />}
+        <h2 className="text-5xl font-bold">🎉</h2>
+        <h2 className="text-3xl font-bold mb-4 text-gray-800">Interview Complete!</h2>
+        <p className="text-gray-600 text-center">
+          Thank you for completing the interview. Your results are being processed.
         </p>
       </motion.div>
     );
@@ -211,4 +223,3 @@ export default function Interviewee() {
 
   return null;
 }
-

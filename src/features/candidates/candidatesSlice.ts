@@ -1,52 +1,39 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { type Session, type Identity, type QA } from "../session/sessionSlice";
+import { type Session } from "../session/sessionSlice";
+import { seedCandidates } from "./seedCandidates";
 
-export interface CandidateRecord {
+export type CandidateRecord = {
   id: string;
-  identity: Identity;
-  qas: QA[];
+  identity: {
+    name: string;
+    email: string;
+    phone: string;
+    internship?: string;
+  };
+  qas: {
+    question: string;
+    answer?: string;
+    difficulty?: string;
+    secondsAllocated?: number;
+    secondsUsed?: number;
+    autoSubmitted?: boolean;
+  }[];
   finalScore: number;
   summary: string;
   finishedAt: number;
-}
+  demo?: boolean; 
+};
 
-interface CandidatesState {
-  list: CandidateRecord[];
-}
+type State = { list: CandidateRecord[] };
 
-const initialState: CandidatesState = { list: [] };
+const initialState: State = {
+  list: seedCandidates(),
+};
 
-function calcScore(qas: QA[]): number {
-  if (qas.length === 0) return 0;
-  const answeredCount = qas.filter((q) => !!q.answer).length;
-  return Math.round((answeredCount / qas.length) * 100);
-}
-
-function generateSummary(identity: Identity, qas: QA[], score: number): string {
-  const easy = qas.filter((q) => q.difficulty === "easy");
-  const medium = qas.filter((q) => q.difficulty === "medium");
-  const hard = qas.filter((q) => q.difficulty === "hard");
-
-  const easyScore =
-    easy.length > 0
-      ? Math.round((easy.filter((q) => q.answer).length / easy.length) * 100)
-      : 0;
-  const mediumScore =
-    medium.length > 0
-      ? Math.round((medium.filter((q) => q.answer).length / medium.length) * 100)
-      : 0;
-  const hardScore =
-    hard.length > 0
-      ? Math.round((hard.filter((q) => q.answer).length / hard.length) * 100)
-      : 0;
-
-  let insight = "";
-  if (hardScore >= 70) insight = "Strong in complex problem-solving.";
-  else if (mediumScore >= 70) insight = "Solid in mid-level technical depth.";
-  else if (easyScore >= 70) insight = "Good with fundamentals but needs depth.";
-  else insight = "Needs significant improvement across all levels.";
-
-  return `${identity.name} scored ${score}/100. ${insight}`;
+function calcScore(qas: CandidateRecord["qas"]): number {
+  const answered = qas.filter((q) => q.answer);
+  if (answered.length === 0) return 0;
+  return Math.round((answered.length / qas.length) * 100);
 }
 
 const candidatesSlice = createSlice({
@@ -54,26 +41,28 @@ const candidatesSlice = createSlice({
   initialState,
   reducers: {
     archiveSession(state, action: PayloadAction<Session>) {
-      const session = action.payload;
-      if (session.step !== "completed" || !session.identity) return;
+      const s = action.payload;
+      if (s.step !== "completed" || !s.identity) return;
 
-      const score = calcScore(session.qas);
-      const summary = generateSummary(session.identity, session.qas, score);
+      const score = calcScore(s.qas);
 
-      const newCandidate: CandidateRecord = {
-        id: session.id,
-        identity: session.identity,
-        qas: session.qas,
+      state.list.push({
+        id: s.id,
+        identity: s.identity,
+        qas: s.qas,
         finalScore: score,
-        summary,
+        summary: `${s.identity.name} scored ${score}/100`,
         finishedAt: Date.now(),
-      };
+      });
 
-      state.list.push(newCandidate);
       state.list.sort((a, b) => b.finalScore - a.finalScore);
+    },
+
+    clearCandidates(state) {
+      state.list = [];
     },
   },
 });
 
-export const { archiveSession } = candidatesSlice.actions;
+export const { archiveSession, clearCandidates } = candidatesSlice.actions;
 export default candidatesSlice.reducer;
